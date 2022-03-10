@@ -7,6 +7,8 @@ using ShoppingCart.BFF.Product.GraphQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddCors(o =>
 {
     o.AddPolicy("MyCors", policyBuilder =>
@@ -35,6 +37,8 @@ builder.Services.AddGraphQL(options => { options.EnableMetrics = true; })
 
 var app = builder.Build();
 
+app.UseHealthChecks("/healthcheck");
+
 app.UseCors("MyCors");
 
 app.UseDeveloperExceptionPage();
@@ -43,3 +47,5 @@ app.UseGraphQLAltair();
 app.UseGraphQL<ISchema>();
 
 app.Run();
+
+public partial class Program { }

@@ -1,4 +1,4 @@
-# Angular C\# GraphQL Example
+# Angular C\# GraphQL Demo
 
 > Example project for setting up a GraphQL powered Angular app using .NET Core 6.
 
@@ -48,10 +48,16 @@ make start_bff
 }
 
 mutation AddProduct($productInput: ProductInput!) {
-  addProduct ({ name: $productInput.name, price: $productInput.price, description: $productInput.description, manufacturer: $productInput.manufacturer }) {
+  addProduct (product: { name: $productInput.name, price: $productInput.price, description: $productInput.description, manufacturer: $productInput.manufacturer }) {
+    id
     name
-    price
     description
+    price
+    reviews {
+      reviewer
+      content
+      stars
+    }
   }
 }
 

@@ -14,7 +14,7 @@ public class ProductInput
     public string Name { get; set; } = null!;
     public string Description { get; set; } = string.Empty;
     public string Manufacturer { get; set; } = null!;
-    public double Price { get; set; } 
+    public double Price { get; set; } = 1.0;
 }
 
 public enum Rating
