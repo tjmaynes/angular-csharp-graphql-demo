@@ -5,16 +5,16 @@ public class ProductEntity {
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public double Price { get; set; }
-    public IEnumerable<Review> Reviews { get; set; }
+    public IEnumerable<Review> Reviews { get; set; } = null!;
 }
 
-public enum Rating: int
+public enum Rating
 {
-    Amazing = 5,
-    Good = 4,
-    Okay = 3,
-    Poor = 2,
-    Bad = 1
+    AMAZING,
+    GOOD,
+    OKAY,
+    POOR,
+    BAD
 }
 
 public class Review

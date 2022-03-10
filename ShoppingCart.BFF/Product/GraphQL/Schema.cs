@@ -22,6 +22,7 @@ public sealed class ProductObject : ObjectGraphType<ProductEntity>
 
         Field(m => m.Id).Description("Identifier of the product");
         Field(m => m.Name).Description("Name of the product");
+        Field(m => m.Description).Description("Description of the product");
         Field(m => m.Price).Description("Price of the product");
         Field(
             name: "Reviews",
