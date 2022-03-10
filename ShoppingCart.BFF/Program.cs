@@ -1,6 +1,7 @@
 using GraphQL.MicrosoftDI;
 using GraphQL.Server;
 using GraphQL.Types;
+using ShoppingCart.BFF.Helpers;
 using ShoppingCart.BFF.Product.Core;
 using ShoppingCart.BFF.Product.GraphQL;
 
@@ -16,16 +17,19 @@ builder.Services.AddCors(o =>
     });
 });
 
+builder.Services.AddSingleton<ISeeder, Seeder>();
+
 builder.Services.AddSingleton<IProductRepository, InMemoryProductRepository>(
-    services => new InMemoryProductRepository());
+    services =>
+    {
+        var seeder = services.GetService<ISeeder>()!;
+        return new InMemoryProductRepository(seeder.Products);
+    });
 
 builder.Services.AddSingleton<ISchema, ProductSchema>(
     services => new ProductSchema(new SelfActivatingServiceProvider(services)));
 
-builder.Services.AddGraphQL(options =>
-    {
-        options.EnableMetrics = true;
-    })
+builder.Services.AddGraphQL(options => { options.EnableMetrics = true; })
     .AddSystemTextJson()
     .AddGraphTypes();
 

@@ -32,11 +32,25 @@ public sealed class ProductObject : ObjectGraphType<ProductEntity>
     }
 }
 
-public sealed class ReviewObject : ObjectGraphType<Review>
+public sealed class ProductInputObject : InputObjectGraphType<ProductInput>
+{
+    public ProductInputObject()
+    {
+        Name = nameof(ProductInput);
+        Description = "The product input for building a product object";
+
+        Field(m => m.Name).Description("Name of the product");
+        Field(m => m.Description).Description("Description of the product");
+        Field(m => m.Manufacturer).Description("Manufacturer of the product");
+        Field(m => m.Price).Description("Price of the product");
+    }
+}
+
+public sealed class ReviewObject : ObjectGraphType<ReviewEntity>
 {
     public ReviewObject()
     {
-        Name = nameof(Review);
+        Name = nameof(ReviewEntity);
         Description = "A review of the product";
         Field(r => r.Reviewer).Description("Name of the reviewer");
         Field(r => r.Content).Description("Description from the reviewer");
@@ -44,7 +58,7 @@ public sealed class ReviewObject : ObjectGraphType<Review>
     }
 }
 
-public sealed class ReviewInputObject : InputObjectGraphType<Review>
+public sealed class ReviewInputObject : InputObjectGraphType<ReviewEntity>
 {
     public ReviewInputObject()
     {
@@ -67,6 +81,15 @@ public class ProductQueryObject: ObjectGraphType<object>
             name: "products",
             description: "Gets all items from the shopping cart.",
             resolve: async _ => await repository.GetAllAsync());
+        
+        FieldAsync<ListGraphType<ReviewObject>>(
+            name: "reviews",
+            description: "Gets all reviews from the products in the shopping cart.",
+            resolve: async _ =>
+            {
+                var products = await repository.GetAllAsync();
+                return products.SelectMany(p => p.Reviews);
+            });
         
         FieldAsync<ProductObject, ProductEntity>(
             name: "getProductById",
@@ -92,27 +115,15 @@ public class ProductMutationObject : ObjectGraphType<object>
             name: "addProduct",
             description: "Add product to the shopping cart.",
             arguments: new QueryArguments(
-                new QueryArgument<NonNullGraphType<StringGraphType>>
+                new QueryArgument<NonNullGraphType<ProductInputObject>>
                 {
-                    Name = "name",
-                    Description = "Name of the product."
-                },
-                new QueryArgument<NonNullGraphType<StringGraphType>>
-                {
-                    Name = "description",
-                    Description = "Description of the product."
-                },
-                new QueryArgument<NonNullGraphType<DecimalGraphType>>
-                {
-                    Name = "price",
-                    Description = "Price of the product."
+                    Name = "product",
+                    Description = "The product to be added to the shopping cart."
                 }),
             resolve: async context =>
             {
-                var name = context.GetArgument<string>("name");
-                var description = context.GetArgument<string>("description");
-                var price = context.GetArgument<Double>("price");
-                return await repository.AddProductAsync(name, description, price);
+                var productInput = context.GetArgument<ProductInput>("product");
+                return await repository.AddProductAsync(productInput);
             });
 
         FieldAsync<ProductObject, ProductEntity>(
@@ -132,8 +143,24 @@ public class ProductMutationObject : ObjectGraphType<object>
             resolve: async context =>
             {
                 var id = context.GetArgument<Guid>("id");
-                var review = context.GetArgument<Review>("review");
+                var review = context.GetArgument<ReviewEntity>("review");
                 return await repository.AddReviewForProductAsync(id, review);
+            });
+        
+        FieldAsync<ProductObject, object>(
+            name: "deleteProductById",
+            description: "Remove the product from the shopping cart.",
+            arguments: new QueryArguments(
+                new QueryArgument<NonNullGraphType<IdGraphType>>
+                {
+                    Name = "id",
+                    Description = "The unique GUID of the product."
+                }),
+            resolve: async context =>
+            {
+                var id = context.GetArgument<Guid>("id");
+                var result = await repository.DeleteProductById(id);
+                return result.Id;
             });
     }
 }

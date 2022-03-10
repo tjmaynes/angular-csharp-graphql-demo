@@ -41,8 +41,14 @@ make start_bff
   }
 }
 
-mutation AddProduct($name: String!, $price: Decimal!, $description: String!) {
-  addProduct (name: $name, price: $price, description: $description) {
+{
+  reviews {
+    reviewer
+  }
+}
+
+mutation AddProduct($productInput: ProductInput!) {
+  addProduct ({ name: $productInput.name, price: $productInput.price, description: $productInput.description, manufacturer: $productInput.manufacturer }) {
     name
     price
     description
@@ -55,6 +61,21 @@ mutation AddReviewForProduct($id: ID!, $review: ReviewInput!) {
     description
     price
     
+    reviews {
+      reviewer
+      content
+      stars
+    }
+  }
+}
+
+mutation DeleteProductById($id: ID!) {
+  deleteProductById(id: $id) {
+    name
+    description
+    price
+    manufacturer
+
     reviews {
       reviewer
       content

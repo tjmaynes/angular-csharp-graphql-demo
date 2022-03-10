@@ -4,67 +4,18 @@ public interface IProductRepository
 {
     Task<List<ProductEntity>> GetAllAsync();
     Task<ProductEntity> GetByIdAsync(Guid id);
-    Task<ProductEntity> AddProductAsync(string name, string description, Double price);
-    Task<ProductEntity> AddReviewForProductAsync(Guid id, Review review);
+    Task<ProductEntity> AddProductAsync(ProductInput productInput);
+    Task<ProductEntity> AddReviewForProductAsync(Guid id, ReviewEntity reviewEntity);
+    Task<ProductEntity> DeleteProductById(Guid id);
 }
 
 public class InMemoryProductRepository : IProductRepository
 {
     private IEnumerable<ProductEntity> _products;
 
-    public InMemoryProductRepository()
+    public InMemoryProductRepository(IEnumerable<ProductEntity> products)
     {
-        _products = new[]
-        {
-            new ProductEntity
-            {
-                Id = Guid.NewGuid(),
-                Name = "Orange Juice",
-                Description = "Florida's best!",
-                Price = 5.99,
-                Reviews = new[]
-                {
-                    new Review
-                    {
-                        Id = Guid.NewGuid(),
-                        Reviewer = "Jerry Smith",
-                        Content = "The best OJ I've ever had!",
-                        Stars = Rating.AMAZING
-                    },
-                    new Review
-                    {
-                        Id = Guid.NewGuid(),
-                        Reviewer = "Rick Sanchez",
-                        Content = "I've had better...",
-                        Stars = Rating.GOOD
-                    }
-                }
-            },
-            new ProductEntity
-            {
-                Id = Guid.NewGuid(),
-                Name = "Graham Crackers",
-                Description = "Cinnamon, milk and ginger",
-                Price = 2.99,
-                Reviews = new[]
-                {
-                    new Review
-                    {
-                        Id = Guid.NewGuid(),
-                        Reviewer = "Jerry Smith",
-                        Content = "I love this brand! So good in dunked in milk.",
-                        Stars = Rating.AMAZING
-                    },
-                    new Review
-                    {
-                        Id = Guid.NewGuid(),
-                        Reviewer = "Morty Smith",
-                        Content = "Totally agree, Dad! So good dunked in milk.",
-                        Stars = Rating.AMAZING
-                    }
-                }
-            }
-        };
+        _products = products;
     }
 
     public Task<List<ProductEntity>> GetAllAsync()
@@ -74,18 +25,18 @@ public class InMemoryProductRepository : IProductRepository
 
     public Task<ProductEntity> GetByIdAsync(Guid id)
     {
-        return Task.Run(() => _products.First(p => p.Id.Equals(id)));
+        return Task.Run(() => FindFirstById(id));
     }
 
-    public Task<ProductEntity> AddProductAsync(string name, string description, Double price)
+    public Task<ProductEntity> AddProductAsync(ProductInput productInput)
     {
         var product = new ProductEntity
         {
             Id = Guid.NewGuid(),
-            Name = name,
-            Description = description,
-            Price = price,
-            Reviews = Enumerable.Empty<Review>(),
+            Name = productInput.Name,
+            Description = productInput.Description,
+            Price = productInput.Price,
+            Reviews = Enumerable.Empty<ReviewEntity>(),
         };
 
         _products = _products.Concat(new[] {product});
@@ -93,11 +44,28 @@ public class InMemoryProductRepository : IProductRepository
         return Task.Run(() => product);
     }
 
-    public Task<ProductEntity> AddReviewForProductAsync(Guid id, Review review)
+    public Task<ProductEntity> AddReviewForProductAsync(Guid id, ReviewEntity reviewEntity)
     {
-        var product = _products.First(p => p.Id.Equals(id));
-        product.Reviews = product.Reviews.Concat(new[] {review});
+        var product = FindFirstById(id);
+        product.Reviews = product.Reviews.Concat(new[] {reviewEntity});
 
         return Task.Run(() => product);
     }
+
+    public Task<ProductEntity> DeleteProductById(Guid id)
+    {
+        var productToDelete = FindFirstById(id);
+
+        var newProducts = Enumerable.Empty<ProductEntity>();
+        foreach (var product in _products)
+        {
+            if (product != productToDelete) newProducts = newProducts.Append(product);
+        }
+
+        _products = newProducts;
+        
+        return Task.Run(() => productToDelete);
+    }
+
+    private ProductEntity FindFirstById(Guid id) => _products.First(p => p.Id.Equals(id));
 }
