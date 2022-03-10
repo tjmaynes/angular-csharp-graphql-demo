@@ -16,60 +16,8 @@ builder.Services.AddCors(o =>
     });
 });
 
-var products = new[]
-{
-    new ProductEntity
-    {
-        Id = Guid.NewGuid(),
-        Name = "Orange Juice",
-        Description = "Florida's best!",
-        Price = 5.99,
-        Reviews = new[]
-        {
-            new Review
-            {
-                Id = Guid.NewGuid(),
-                Reviewer = "Jerry Smith",
-                Content = "The best OJ I've ever had!",
-                Stars = Rating.AMAZING
-            },
-            new Review
-            {
-                Id = Guid.NewGuid(),
-                Reviewer = "Rick Sanchez",
-                Content = "I've had better...",
-                Stars = Rating.GOOD
-            }
-        }
-    },
-    new ProductEntity
-    {
-        Id = Guid.NewGuid(),
-        Name = "Graham Crackers",
-        Description = "Cinnamon, milk and ginger",
-        Price = 2.99,
-        Reviews = new[]
-        {
-            new Review
-            {
-                Id = Guid.NewGuid(),
-                Reviewer = "Jerry Smith",
-                Content = "I love this brand! So good in dunked in milk.",
-                Stars = Rating.AMAZING
-            },
-            new Review
-            {
-                Id = Guid.NewGuid(),
-                Reviewer = "Morty Smith",
-                Content = "Totally agree, Dad! So good dunked in milk.",
-                Stars = Rating.AMAZING
-            }
-        }
-    }
-};
-
 builder.Services.AddSingleton<IProductRepository, InMemoryProductRepository>(
-    services => new InMemoryProductRepository(products));
+    services => new InMemoryProductRepository());
 
 builder.Services.AddSingleton<ISchema, ProductSchema>(
     services => new ProductSchema(new SelfActivatingServiceProvider(services)));
